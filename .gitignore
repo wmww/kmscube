@@ -12,3 +12,9 @@ kmscube
 tags
 TAGS
 build-aux
+*.gch
+bin
+build
+*.sconsign.dblite
+nogit
+nocompile/
