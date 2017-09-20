@@ -22,6 +22,7 @@
  */
 
 #define _GNU_SOURCE
+#define HAVE_GST
 
 #include <assert.h>
 #include <stdio.h>

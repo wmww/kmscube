@@ -102,9 +102,9 @@ const struct egl * init_cube_tex(const struct gbm *gbm, enum mode mode);
 #ifdef HAVE_GST
 
 struct decoder;
-struct decoder * video_init(const struct egl *egl, const struct gbm *gbm, const char *filename);
-EGLImage video_frame(struct decoder *dec);
-void video_deinit(struct decoder *dec);
+//struct decoder * video_init(const struct egl *egl, const struct gbm *gbm, const char *filename);
+//EGLImage video_frame(struct decoder *dec);
+//void video_deinit(struct decoder *dec);
 
 const struct egl * init_cube_video(const struct gbm *gbm, const char *video);
 

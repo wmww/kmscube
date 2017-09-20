@@ -18,6 +18,13 @@ env.Append(
 )
 
 libs = [
+	'm', # standard c math library
+	'EGL',
+	'GL',
+	'GLU',
+	'GLEW',
+	'SOIL',
+	'gbm',
 ]
 
 def get_contents_of_dir(base):
