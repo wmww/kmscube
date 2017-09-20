@@ -21,7 +21,10 @@
 
 extern "C"
 {
+
 int setup_everything();
+void swap_buffers();
+
 }
 
 struct BackendDRM: Backend
@@ -77,7 +80,7 @@ struct BackendDRM: Backend
 	
 	void swapBuffer()
 	{
-		eglSwapBuffers(eglDisplay, windowSurface);
+		swap_buffers();
 	}
 	
 	void checkEvents()

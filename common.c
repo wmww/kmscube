@@ -182,7 +182,6 @@ int init_egl(struct egl *egl, const struct gbm *gbm)
 static const struct egl *egl;
 static const struct drm *drm;
 
-
 int setup_everything()
 {
 	const char *device = "/dev/dri/card0";
@@ -214,7 +213,13 @@ int setup_everything()
 	glClearColor(0.5, 0.5, 0.5, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	drm->run(&gbm, egl);
+	drm_legacy_setup_with_egl(&gbm, egl);
+	//drm->run(&gbm, egl);
 	
 	return 0;
+}
+
+void swap_buffers()
+{
+	drm_legacy_swap_buffers(&gbm, egl);
 }

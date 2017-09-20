@@ -30,6 +30,9 @@
 #include "drm-common.h"
 
 static struct drm drm;
+struct drm_fb *fb;
+fd_set fds;
+struct gbm_bo *bo;
 
 static void page_flip_handler(int fd, unsigned int frame,
 		  unsigned int sec, unsigned int usec, void *data)
@@ -41,16 +44,8 @@ static void page_flip_handler(int fd, unsigned int frame,
 	*waiting_for_flip = 0;
 }
 
-static int legacy_run(const struct gbm *gbm, const struct egl *egl)
+int drm_legacy_setup_with_egl(const struct gbm *gbm, const struct egl *egl)
 {
-	fd_set fds;
-	drmEventContext evctx = {
-			.version = 2,
-			.page_flip_handler = page_flip_handler,
-	};
-	struct gbm_bo *bo;
-	struct drm_fb *fb;
-	uint32_t i = 0;
 	int ret;
 
 	FD_ZERO(&fds);
@@ -72,54 +67,60 @@ static int legacy_run(const struct gbm *gbm, const struct egl *egl)
 		printf("failed to set mode: %s\n", strerror(errno));
 		return ret;
 	}
+	
+	return 0;
+}
 
-	while (1) {
-		struct gbm_bo *next_bo;
-		int waiting_for_flip = 1;
+void drm_legacy_swap_buffers(const struct gbm *gbm, const struct egl *egl)
+{
+	int ret;
+	
+	drmEventContext evctx = {
+			.version = 2,
+			.page_flip_handler = page_flip_handler,
+	};
+	
+	struct gbm_bo *next_bo;
+	int waiting_for_flip = 1;
 
-		egl->draw(i++);
-
-		eglSwapBuffers(egl->display, egl->surface);
-		next_bo = gbm_surface_lock_front_buffer(gbm->surface);
-		fb = drm_fb_get_from_bo(next_bo);
-		if (!fb) {
-			fprintf(stderr, "Failed to get a new framebuffer BO\n");
-			return -1;
-		}
-
-		/*
-		 * Here you could also update drm plane layers if you want
-		 * hw composition
-		 */
-
-		ret = drmModePageFlip(drm.fd, drm.crtc_id, fb->fb_id,
-				DRM_MODE_PAGE_FLIP_EVENT, &waiting_for_flip);
-		if (ret) {
-			printf("failed to queue page flip: %s\n", strerror(errno));
-			return -1;
-		}
-
-		while (waiting_for_flip) {
-			ret = select(drm.fd + 1, &fds, NULL, NULL, NULL);
-			if (ret < 0) {
-				printf("select err: %s\n", strerror(errno));
-				return ret;
-			} else if (ret == 0) {
-				printf("select timeout!\n");
-				return -1;
-			} else if (FD_ISSET(0, &fds)) {
-				printf("user interrupted!\n");
-				break;
-			}
-			drmHandleEvent(drm.fd, &evctx);
-		}
-
-		/* release last buffer to render on again: */
-		gbm_surface_release_buffer(gbm->surface, bo);
-		bo = next_bo;
+	eglSwapBuffers(egl->display, egl->surface);
+	next_bo = gbm_surface_lock_front_buffer(gbm->surface);
+	fb = drm_fb_get_from_bo(next_bo);
+	if (!fb) {
+		fprintf(stderr, "Failed to get a new framebuffer BO\n");
+		return;
 	}
 
-	return 0;
+	/*
+	 * Here you could also update drm plane layers if you want
+	 * hw composition
+	 */
+
+	ret = drmModePageFlip(drm.fd, drm.crtc_id, fb->fb_id,
+			DRM_MODE_PAGE_FLIP_EVENT, &waiting_for_flip);
+	if (ret) {
+		printf("failed to queue page flip: %s\n", strerror(errno));
+		return;
+	}
+
+	while (waiting_for_flip) {
+		ret = select(drm.fd + 1, &fds, NULL, NULL, NULL);
+		if (ret < 0) {
+			printf("select err: %s\n", strerror(errno));
+			return;
+		} else if (ret == 0) {
+			printf("select timeout!\n");
+			return;
+		} else if (FD_ISSET(0, &fds)) {
+			printf("user interrupted!\n");
+			break;
+		}
+		drmHandleEvent(drm.fd, &evctx);
+	}
+
+	/* release last buffer to render on again: */
+	gbm_surface_release_buffer(gbm->surface, bo);
+	bo = next_bo;
 }
 
 const struct drm * init_drm_legacy(const char *device)
@@ -129,8 +130,6 @@ const struct drm * init_drm_legacy(const char *device)
 	ret = init_drm(&drm, device);
 	if (ret)
 		return NULL;
-
-	drm.run = legacy_run;
 
 	return &drm;
 }
