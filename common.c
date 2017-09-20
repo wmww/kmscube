@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include "common.h"
+#include "drm-common.h"
 
 static struct gbm gbm;
 
@@ -171,6 +172,51 @@ int init_egl(struct egl *egl, const struct gbm *gbm)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glewInit();
+	
+	return 0;
+}
+
+
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+
+static const struct egl *egl;
+static const struct drm *drm;
+
+
+int setup_everything()
+{
+	const char *device = "/dev/dri/card0";
+	uint64_t modifier = DRM_FORMAT_MOD_INVALID;
+	int atomic = 0;
+	
+	if (atomic)
+		drm = init_drm_atomic(device);
+	else
+		drm = init_drm_legacy(device);
+	if (!drm) {
+		printf("failed to initialize %s DRM\n", atomic ? "atomic" : "legacy");
+		return -1;
+	}
+
+	const struct gbm * ret = init_gbm(drm->fd, drm->mode->hdisplay, drm->mode->vdisplay,
+			modifier);
+	if (!ret) {
+		printf("failed to initialize GBM\n");
+		return -1;
+	}
+
+	egl = init_egl_view(&gbm);
+
+	if (!egl) {
+		printf("failed to initialize EGL\n");
+		return -1;
+	}
+
+	// clear the color buffer
+	glClearColor(0.5, 0.5, 0.5, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	drm->run(&gbm, egl);
 	
 	return 0;
 }

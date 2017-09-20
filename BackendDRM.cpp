@@ -1,6 +1,5 @@
-/*
-#include "BackendX11Base.h"
-#include "../wayland/WaylandEGL.h"
+#include "Backend.h"
+//#include "../wayland/WaylandEGL.h"
 #include <wayland-server.h>
 #include <X11/Xlib.h>
 #include <linux/input.h>
@@ -20,15 +19,21 @@
 // change to toggle debug statements on and off
 #define debug debug_off
 
-struct BackendEGL: BackendX11Base
+extern "C"
+{
+int setup_everything();
+}
+
+struct BackendDRM: Backend
 {
 	EGLDisplay eglDisplay;
 	EGLConfig config;
 	EGLContext windowContext;
 	EGLSurface windowSurface;
 	
-	BackendEGL(V2i dim): BackendX11Base(dim)
+	BackendDRM()
 	{
+		/*
 		eglDisplay = eglGetDisplay(xDisplay);
 		eglInitialize(eglDisplay, nullptr, nullptr);
 		
@@ -60,23 +65,41 @@ struct BackendEGL: BackendX11Base
 		eglMakeCurrent(eglDisplay, windowSurface, windowSurface, windowContext);
 		
 		WaylandEGL::setEglVars(eglDisplay, windowContext);
+		*/
+		int ret = setup_everything();
+		ASSERT_ELSE(ret == 0, exit(1));
 	}
 	
-	~BackendEGL()
+	~BackendDRM()
 	{
-		warning("~BackendEGL not implemented");
+		warning("~BackendDRM not implemented");
 	}
 	
 	void swapBuffer()
 	{
 		eglSwapBuffers(eglDisplay, windowSurface);
 	}
+	
+	void checkEvents()
+	{
+		warning(FUNC + " not implemented");
+	}
+	
+	string getKeymap()
+	{
+		warning(FUNC + " not implemented");
+		return "";
+	}
+	
+	void * getXDisplay()
+	{
+		warning(FUNC + " not implemented and shouldn't even exist");
+		return nullptr;
+	}
 };
 
-unique_ptr<Backend> Backend::makeEGL(V2i dim)
+unique_ptr<Backend> Backend::makeDRM()
 {
-	return make_unique<BackendEGL>(dim);
+	return make_unique<BackendDRM>();
 }
 
-
-*/

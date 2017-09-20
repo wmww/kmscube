@@ -30,46 +30,4 @@
 #include <getopt.h>
 
 #include "common.h"
-#include "drm-common.h"
 
-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
-
-static const struct egl *egl;
-static const struct gbm *gbm;
-static const struct drm *drm;
-
-int main(int argc, char *argv[])
-{
-	const char *device = "/dev/dri/card0";
-	uint64_t modifier = DRM_FORMAT_MOD_INVALID;
-	int atomic = 0;
-	
-	if (atomic)
-		drm = init_drm_atomic(device);
-	else
-		drm = init_drm_legacy(device);
-	if (!drm) {
-		printf("failed to initialize %s DRM\n", atomic ? "atomic" : "legacy");
-		return -1;
-	}
-
-	gbm = init_gbm(drm->fd, drm->mode->hdisplay, drm->mode->vdisplay,
-			modifier);
-	if (!gbm) {
-		printf("failed to initialize GBM\n");
-		return -1;
-	}
-
-	egl = init_egl_view(gbm);
-
-	if (!egl) {
-		printf("failed to initialize EGL\n");
-		return -1;
-	}
-
-	/* clear the color buffer */
-	glClearColor(0.5, 0.5, 0.5, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	return drm->run(gbm, egl);
-}
