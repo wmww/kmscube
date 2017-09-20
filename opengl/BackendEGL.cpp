@@ -1,8 +1,13 @@
 /*
-#include "../main/util.h"
+#include "BackendX11Base.h"
+#include "../wayland/WaylandEGL.h"
+#include <wayland-server.h>
+#include <X11/Xlib.h>
 #include <linux/input.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+#include <X11/Xlib-xcb.h>
+#include <xkbcommon/xkbcommon-x11.h>
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -15,16 +20,46 @@
 // change to toggle debug statements on and off
 #define debug debug_off
 
-struct BackendEGL
+struct BackendEGL: BackendX11Base
 {
 	EGLDisplay eglDisplay;
 	EGLConfig config;
 	EGLContext windowContext;
 	EGLSurface windowSurface;
 	
-	BackendEGL()
+	BackendEGL(V2i dim): BackendX11Base(dim)
 	{
+		eglDisplay = eglGetDisplay(xDisplay);
+		eglInitialize(eglDisplay, nullptr, nullptr);
 		
+		// setup EGL
+		EGLint eglAttribs[] = {
+			EGL_RENDERABLE_TYPE,	EGL_OPENGL_BIT,
+			EGL_RED_SIZE,			1,
+			EGL_GREEN_SIZE,			1,
+			EGL_BLUE_SIZE,			1,
+			EGL_NONE
+		};
+		EGLint configsCount;
+		eglChooseConfig(eglDisplay, eglAttribs, &config, 1, &configsCount);
+		EGLint visualId;
+		eglGetConfigAttrib(eglDisplay, config, EGL_NATIVE_VISUAL_ID, &visualId);
+		openWindow(visual, "Hedgehog");
+		
+		// EGL context and surface
+		eglBindAPI(EGL_OPENGL_API);
+		const EGLint moreAttribs[] = {
+			EGL_CONTEXT_MAJOR_VERSION_KHR, 3,
+			EGL_CONTEXT_MINOR_VERSION_KHR, 3,
+			EGL_NONE
+			};
+		windowContext = eglCreateContext(eglDisplay, config, EGL_NO_CONTEXT, moreAttribs);
+		ASSERT(windowContext != EGL_NO_CONTEXT);
+		windowSurface = eglCreateWindowSurface(eglDisplay, config, window, nullptr);
+		ASSERT(windowSurface != EGL_NO_SURFACE);
+		eglMakeCurrent(eglDisplay, windowSurface, windowSurface, windowContext);
+		
+		WaylandEGL::setEglVars(eglDisplay, windowContext);
 	}
 	
 	~BackendEGL()
@@ -42,4 +77,6 @@ unique_ptr<Backend> Backend::makeEGL(V2i dim)
 {
 	return make_unique<BackendEGL>(dim);
 }
+
+
 */

@@ -2,7 +2,7 @@
 #include "ShaderProgram.h"
 
 // change to toggle debug statements on and off
-#define debug debug_off
+#define debug debug_on
 
 ShaderProgram shaderProgram;
 
@@ -30,6 +30,7 @@ RectRenderer::RectRenderer()
 {
 	if (shaderProgram.isNull())
 	{
+		debug("setting up shader program");
 		shaderProgram.setupFromCode(vertShaderCode, fragShaderCode);
 	}
 	

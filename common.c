@@ -83,7 +83,8 @@ int init_egl(struct egl *egl, const struct gbm *gbm)
 	EGLint major, minor, n;
 
 	static const EGLint context_attribs[] = {
-		EGL_CONTEXT_CLIENT_VERSION, 2,
+		EGL_CONTEXT_MAJOR_VERSION_KHR, 3,
+		EGL_CONTEXT_MINOR_VERSION_KHR, 3,
 		EGL_NONE
 	};
 
@@ -93,7 +94,7 @@ int init_egl(struct egl *egl, const struct gbm *gbm)
 		EGL_GREEN_SIZE, 1,
 		EGL_BLUE_SIZE, 1,
 		EGL_ALPHA_SIZE, 0,
-		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+		EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
 		EGL_NONE
 	};
 
@@ -132,8 +133,8 @@ int init_egl(struct egl *egl, const struct gbm *gbm)
 	printf("  extensions: \"%s\"\n", eglQueryString(egl->display, EGL_EXTENSIONS));
 	printf("===================================\n");
 
-	if (!eglBindAPI(EGL_OPENGL_ES_API)) {
-		printf("failed to bind api EGL_OPENGL_ES_API\n");
+	if (!eglBindAPI(EGL_OPENGL_API)) {
+		printf("failed to bind api EGL_OPENGL_API\n");
 		return -1;
 	}
 
@@ -159,92 +160,17 @@ int init_egl(struct egl *egl, const struct gbm *gbm)
 	/* connect the context to the surface */
 	eglMakeCurrent(egl->display, egl->surface, egl->surface, egl->context);
 
-	printf("OpenGL ES 2.x information:\n");
+	printf("OpenGL information:\n");
 	printf("  version: \"%s\"\n", glGetString(GL_VERSION));
 	printf("  shading language version: \"%s\"\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 	printf("  vendor: \"%s\"\n", glGetString(GL_VENDOR));
 	printf("  renderer: \"%s\"\n", glGetString(GL_RENDERER));
 	printf("  extensions: \"%s\"\n", glGetString(GL_EXTENSIONS));
 	printf("===================================\n");
-
-	return 0;
-}
-
-int create_program(const char *vs_src, const char *fs_src)
-{
-	GLuint vertex_shader, fragment_shader, program;
-	GLint ret;
-
-	vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-
-	glShaderSource(vertex_shader, 1, &vs_src, NULL);
-	glCompileShader(vertex_shader);
-
-	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &ret);
-	if (!ret) {
-		char *log;
-
-		printf("vertex shader compilation failed!:\n");
-		glGetShaderiv(vertex_shader, GL_INFO_LOG_LENGTH, &ret);
-		if (ret > 1) {
-			log = malloc(ret);
-			glGetShaderInfoLog(vertex_shader, ret, NULL, log);
-			printf("%s", log);
-		}
-
-		return -1;
-	}
-
-	fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-
-	glShaderSource(fragment_shader, 1, &fs_src, NULL);
-	glCompileShader(fragment_shader);
-
-	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &ret);
-	if (!ret) {
-		char *log;
-
-		printf("fragment shader compilation failed!:\n");
-		glGetShaderiv(fragment_shader, GL_INFO_LOG_LENGTH, &ret);
-
-		if (ret > 1) {
-			log = malloc(ret);
-			glGetShaderInfoLog(fragment_shader, ret, NULL, log);
-			printf("%s", log);
-		}
-
-		return -1;
-	}
-
-	program = glCreateProgram();
-
-	glAttachShader(program, vertex_shader);
-	glAttachShader(program, fragment_shader);
-
-	return program;
-}
-
-int link_program(unsigned program)
-{
-	GLint ret;
-
-	glLinkProgram(program);
-
-	glGetProgramiv(program, GL_LINK_STATUS, &ret);
-	if (!ret) {
-		char *log;
-
-		printf("program linking failed!:\n");
-		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &ret);
-
-		if (ret > 1) {
-			log = malloc(ret);
-			glGetProgramInfoLog(program, ret, NULL, log);
-			printf("%s", log);
-		}
-
-		return -1;
-	}
-
+	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glewInit();
+	
 	return 0;
 }

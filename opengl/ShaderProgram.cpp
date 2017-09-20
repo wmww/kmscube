@@ -1,7 +1,7 @@
 #include "ShaderProgram.h"
 
 // change to toggle debug statements on and off
-#define debug debug_off
+#define debug debug_on
 
 struct ShaderProgram::Impl
 {
@@ -97,6 +97,8 @@ ShaderProgram::Impl::SingleShader ShaderProgram::Impl::SingleShader::fromCode(st
 	{
 		warning("shader failed to compile:\n" + shader.getInfoLog());
 	}
+	else
+		debug("compiling successful");
 	
 	return shader;
 }
