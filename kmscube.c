@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	egl = init_cube_smooth(gbm);
+	egl = init_egl_view(gbm);
 
 	if (!egl) {
 		printf("failed to initialize EGL\n");

@@ -24,8 +24,12 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+#include <GL/glew.h>
+#include <GL/gl.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
@@ -75,7 +79,7 @@ struct egl {
 	PFNEGLGETPLATFORMDISPLAYEXTPROC eglGetPlatformDisplayEXT;
 	PFNEGLCREATEIMAGEKHRPROC eglCreateImageKHR;
 	PFNEGLDESTROYIMAGEKHRPROC eglDestroyImageKHR;
-	PFNGLEGLIMAGETARGETTEXTURE2DOESPROC glEGLImageTargetTexture2DOES;
+	//PFNGLEGLIMAGETARGETTEXTURE2DOESPROC glEGLImageTargetTexture2DOES;
 	PFNEGLCREATESYNCKHRPROC eglCreateSyncKHR;
 	PFNEGLDESTROYSYNCKHRPROC eglDestroySyncKHR;
 	PFNEGLWAITSYNCKHRPROC eglWaitSyncKHR;
@@ -84,11 +88,15 @@ struct egl {
 	void (*draw)(unsigned i);
 };
 
+const struct egl * init_egl_view(const struct gbm *gbm);
 int init_egl(struct egl *egl, const struct gbm *gbm);
 int create_program(const char *vs_src, const char *fs_src);
 int link_program(unsigned program);
 
 const struct egl * init_cube_smooth(const struct gbm *gbm);
-const struct egl * init_cube_tex(const struct gbm *gbm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _COMMON_H */

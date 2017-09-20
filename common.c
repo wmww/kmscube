@@ -104,7 +104,7 @@ int init_egl(struct egl *egl, const struct gbm *gbm)
 	get_proc(eglGetPlatformDisplayEXT);
 	get_proc(eglCreateImageKHR);
 	get_proc(eglDestroyImageKHR);
-	get_proc(glEGLImageTargetTexture2DOES);
+	//get_proc(glEGLImageTargetTexture2DOES);
 	get_proc(eglCreateSyncKHR);
 	get_proc(eglDestroySyncKHR);
 	get_proc(eglWaitSyncKHR);
