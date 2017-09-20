@@ -141,8 +141,10 @@ int main(int argc, char *argv[])
 		egl = init_cube_smooth(gbm);
 	else if (mode == VIDEO)
 		egl = init_cube_video(gbm, video);
-	else
-		egl = init_cube_tex(gbm, mode);
+	else {
+		printf("tried to use removed mode\n");
+		return -1;
+	}
 
 	if (!egl) {
 		printf("failed to initialize EGL\n");
