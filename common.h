@@ -88,34 +88,7 @@ int init_egl(struct egl *egl, const struct gbm *gbm);
 int create_program(const char *vs_src, const char *fs_src);
 int link_program(unsigned program);
 
-enum mode {
-	SMOOTH,        /* smooth-shaded */
-	RGBA,          /* single-plane RGBA */
-	NV12_2IMG,     /* NV12, handled as two textures and converted to RGB in shader */
-	NV12_1IMG,     /* NV12, imported as planar YUV eglimg */
-	VIDEO,         /* video textured cube */
-};
-
 const struct egl * init_cube_smooth(const struct gbm *gbm);
-const struct egl * init_cube_tex(const struct gbm *gbm, enum mode mode);
-
-#ifdef HAVE_GST
-
-struct decoder;
-//struct decoder * video_init(const struct egl *egl, const struct gbm *gbm, const char *filename);
-//EGLImage video_frame(struct decoder *dec);
-//void video_deinit(struct decoder *dec);
-
-const struct egl * init_cube_video(const struct gbm *gbm, const char *video);
-
-#else
-static inline const struct egl *
-init_cube_video(const struct gbm *gbm, const char *video)
-{
-	(void)gbm; (void)video;
-	printf("no GStreamer support!\n");
-	return NULL;
-}
-#endif
+const struct egl * init_cube_tex(const struct gbm *gbm);
 
 #endif /* _COMMON_H */
