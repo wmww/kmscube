@@ -187,14 +187,12 @@ int setup_everything()
 {
 	const char *device = "/dev/dri/card0";
 	uint64_t modifier = DRM_FORMAT_MOD_INVALID;
-	int atomic = 0;
 	
-	if (atomic)
-		drm = init_drm_atomic(device);
-	else
-		drm = init_drm_legacy(device);
+	//drm = init_drm_atomic(device);
+	drm = init_drm_legacy(device);
+	
 	if (!drm) {
-		printf("failed to initialize %s DRM\n", atomic ? "atomic" : "legacy");
+		printf("failed to initialize DRM\n");
 		return -1;
 	}
 
